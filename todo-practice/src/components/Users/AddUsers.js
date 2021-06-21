@@ -26,6 +26,8 @@ const AddUser = (props) => {
     const name = refName.current.value;
     const age = refAge.current.value;
     props.addHandler(name, age);
+    refName.current.value = "";
+    refAge.current.value = "";
   };
   return (
     <Card>
