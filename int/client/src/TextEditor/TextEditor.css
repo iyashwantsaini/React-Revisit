@@ -1,0 +1,32 @@
+body {
+  background-color: #f3f3f3;
+  box-sizing: border-box;
+}
+
+.container {
+  padding: 10px;
+}
+
+.container .ql-toolbar {
+  margin: 1rem;
+  justify-content: center;
+  display: flex;
+  border: none;
+  box-shadow: 0 0 5px 0 rgb(0, 0, 0, 0.5);
+}
+
+.container .ql-container {
+  margin: 1rem;
+  border: none;
+  box-shadow: 0 0 5px 0 rgb(0, 0, 0, 0.5);
+}
+
+.container .ql-container .ql-editor {
+  min-height: 85vh;
+}
+
+.container .ql-container .ql-snow {
+  display: flex;
+  border: none;
+  justify-content: center;
+}
