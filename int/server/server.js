@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Document = require("./schema.js");
 
 mongoose.connect(
-  "mongodb+srv:............",
+  "mongodb+srv:........",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -53,19 +53,19 @@ io.on("connection", (socket) => {
 
   // for videocalls
 
-  socket.on("join room", (documentID) => {
-    if (users[documentID]) {
-      const length = users[documentID].length;
+  socket.on("join room", (roomID) => {
+    if (users[roomID]) {
+      const length = users[roomID].length;
       if (length === 4) {
         socket.emit("room full");
         return;
       }
-      users[documentID].push(socket.id);
+      users[roomID].push(socket.id);
     } else {
-      users[documentID] = [socket.id];
+      users[roomID] = [socket.id];
     }
-    socketToRoom[socket.id] = documentID;
-    const usersInThisRoom = users[documentID].filter((id) => id !== socket.id);
+    socketToRoom[socket.id] = roomID;
+    const usersInThisRoom = users[roomID].filter((id) => id !== socket.id);
 
     socket.emit("all users", usersInThisRoom);
   });
@@ -84,15 +84,14 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("disconnect", (payload) => {
-    console.log(payload);
-    // const documentID = socketToRoom[socket.id];
-    // let room = users[documentID];
-    // if (room) {
-    //   room = room.filter((id) => id !== socket.id);
-    //   users[documentID] = room;
-    // }
-    // socket.to(documentID).broadcast.emit("user-disconnected", users[documentID]);
+  socket.on("disconnect", () => {
+    const roomID = socketToRoom[socket.id];
+    let room = users[roomID];
+    if (room) {
+      room = room.filter((id) => id !== socket.id);
+      users[roomID] = room;
+    }
+    socket.broadcast.emit("user left", socket.id);
   });
 });
 

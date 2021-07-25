@@ -5,21 +5,19 @@ import styled from "styled-components";
 import { useParams } from "react-router-dom";
 
 const Container = styled.div`
-  padding: 20px;
-  display: flex;
-  height: 100vh;
-  width: 90%;
-  margin: auto;
-  flex-wrap: wrap;
   display: grid;
-  grid-template-columns: repeat(auto-fill, 200px);
-  grid-auto-rows: 200px;
+  grid-template-columns: repeat(auto-fill, 100%);
+  grid-auto-rows: 180px;
+  margin-top: 1.7rem;
+  border: none;
 `;
 
 const StyledVideo = styled.video`
   width: 100%;
   height: 100%;
-  // object-fit: cover;
+  object-fit: cover;
+  box-shadow: 0 0 5px 0 rgb(0 0 0 / 50%);
+  margin-top: 0.1rem;
 `;
 
 const Video = (props) => {
@@ -29,14 +27,8 @@ const Video = (props) => {
     props.peer.on("stream", (stream) => {
       ref.current.srcObject = stream;
     });
-  }, [props.peer]);
-
+  }, []);
   return <StyledVideo playsInline autoPlay ref={ref} />;
-};
-
-const videoConstraints = {
-  height: window.innerHeight / 2,
-  width: window.innerWidth / 2,
 };
 
 const Room = (props) => {
@@ -48,13 +40,11 @@ const Room = (props) => {
 
   useEffect(() => {
     socketRef.current = io.connect("http://localhost:3001");
-
     navigator.mediaDevices
-      .getUserMedia({ video: videoConstraints, audio: true })
+      .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         userVideo.current.srcObject = stream;
         socketRef.current.emit("join room", roomID);
-
         socketRef.current.on("all users", (users) => {
           const peers = [];
           users.forEach((userID) => {
@@ -63,7 +53,10 @@ const Room = (props) => {
               peerID: userID,
               peer,
             });
-            peers.push(peer);
+            peers.push({
+              peerID: userID,
+              peer,
+            });
           });
           setPeers(peers);
         });
@@ -74,7 +67,12 @@ const Room = (props) => {
             peerID: payload.callerID,
             peer,
           });
-          setPeers((users) => [...users, peer]);
+
+          const peerObj = {
+            peerID: payload.callerID,
+            peer,
+          };
+          setPeers((users) => [...users, peerObj]);
         });
 
         socketRef.current.on("receiving returned signal", (payload) => {
@@ -82,15 +80,17 @@ const Room = (props) => {
           item.peer.signal(payload.signal);
         });
 
-        socketRef.current.on("user-disconnected", (payload) => {
-          // peersRef.current = peersRef.current.filter(function (item) {
-          //   return item !== payload.ID;
-          // });
-          // setPeers(peersRef.current);
-          console.log(payload);
+        socketRef.current.on("user left", (id) => {
+          const peerObj = peersRef.current.find((p) => p.peerID === id);
+          if (peerObj) {
+            peerObj.peer.destroy();
+          }
+          const peers = peersRef.current.filter((p) => p.peerID !== id);
+          peersRef.current = peers;
+          setPeers(peers);
         });
       });
-  }, [roomID]);
+  }, []);
 
   function createPeer(userToSignal, callerID, stream) {
     const peer = new Peer({
@@ -129,8 +129,8 @@ const Room = (props) => {
   return (
     <Container>
       <StyledVideo muted ref={userVideo} autoPlay playsInline />
-      {peers.map((peer, index) => {
-        return <Video key={index} peer={peer} />;
+      {peers.map((peer) => {
+        return <Video key={peer.peerID} peer={peer.peer} />;
       })}
     </Container>
   );
