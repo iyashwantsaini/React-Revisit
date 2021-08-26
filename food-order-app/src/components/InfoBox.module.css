@@ -1,0 +1,18 @@
+.info-text{
+    height: 100px;
+    margin-top: 150px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-data{
+    text-align: center;
+    background-color: crimson;
+    width: 50%;
+    padding: 10px;
+    color: white;
+    border: 20px solid crimson;
+    border-radius: 10px;
+}
